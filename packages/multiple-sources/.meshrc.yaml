@@ -1,0 +1,56 @@
+sources:
+  - name: AssetsService
+    handler:
+      openapi:
+        baseUrl: http://localhost:3002/
+        source: ../assets-service/openapi3-definition.json
+  - name: PublishersService
+    handler:
+      openapi:
+        baseUrl: http://localhost:3003/
+        source: ../publishers-service/openapi3-definition.json
+  - name: UsersService
+    handler:
+      openapi:
+        baseUrl: http://localhost:3004/
+        source: ../users-service/openapi3-definition.json
+transforms:
+  - filterSchema:
+      filters:
+        - Asset.!categoryId
+        - Asset.!publisherId
+        - User.!entitlementsIds
+additionalTypeDefs: |
+  extend type Asset {
+    publisher: Publisher
+    category: Category
+  }
+  extend type User {
+    entitlements: [Asset]
+  }
+additionalResolvers:
+  - targetTypeName: Asset
+    targetFieldName: category
+    sourceName: AssetsService # Which source does the target field belong to?
+    sourceTypeName: Query # Which root type does the target field belong to?
+    sourceFieldName: category # What is the source field name?
+    requiredSelectionSet:
+      |
+      {
+        categoryId
+      }
+    sourceArgs: # What args does this need to take?
+      id: "{root.categoryId}"
+  - targetTypeName: Asset
+    targetFieldName: publisher
+    sourceName: PublishersService # Which source does the target field belong to?
+    sourceTypeName: Query # Which root type does the target field belong to?
+    sourceFieldName: publisher # What is the source field name?
+    requiredSelectionSet:
+      |
+      {
+        publisherId
+      }
+    sourceArgs: # What args does this need to take?
+      id: "{root.publisherId}"
+  - "./user-entitlements-resolver"

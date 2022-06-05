@@ -1,0 +1,52 @@
+schema {
+  query: Query
+}
+
+type Query {
+  """
+  
+  
+  Equivalent to GET /assets/{id}
+  """
+  asset(id: String!): Asset
+  """
+  
+  
+  Equivalent to GET /assets
+  """
+  assets(
+    """
+    Auto-generated argument that limits the size of returned list of objects/list, selecting the first `n` elements of the list
+    """
+    limit: Int
+  ): [Asset]
+  """
+  
+  
+  Equivalent to GET /categories
+  """
+  categories(
+    """
+    Auto-generated argument that limits the size of returned list of objects/list, selecting the first `n` elements of the list
+    """
+    limit: Int
+  ): [Category]
+  """
+  
+  
+  Equivalent to GET /categories/{id}
+  """
+  category(id: String!): Category
+}
+
+type Asset {
+  categoryId: String!
+  id: String!
+  publisherId: String!
+  title: String!
+}
+
+type Category {
+  id: String!
+  name: String!
+}

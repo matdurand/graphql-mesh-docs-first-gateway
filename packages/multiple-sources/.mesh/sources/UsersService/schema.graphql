@@ -1,0 +1,29 @@
+schema {
+  query: Query
+}
+
+type Query {
+  """
+  
+  
+  Equivalent to GET /users/{id}
+  """
+  user(id: String!): User
+  """
+  
+  
+  Equivalent to GET /users
+  """
+  users(
+    """
+    Auto-generated argument that limits the size of returned list of objects/list, selecting the first `n` elements of the list
+    """
+    limit: Int
+  ): [User]
+}
+
+type User {
+  entitlementsIds: [String]!
+  id: String!
+  name: String!
+}

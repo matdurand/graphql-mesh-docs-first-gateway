@@ -1,0 +1,11 @@
+query MyQuery {
+  users {
+    name
+    entitlements {
+      title
+      publisher {
+        name
+      }
+    }
+  }
+}
