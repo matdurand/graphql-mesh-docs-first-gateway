@@ -2,28 +2,33 @@ schema {
   query: Query
 }
 
-type Query {
-  """
-  
-  
-  Equivalent to GET /users/{id}
-  """
-  user(id: String!): User
-  """
-  
-  
-  Equivalent to GET /users
-  """
-  users(
-    """
-    Auto-generated argument that limits the size of returned list of objects/list, selecting the first `n` elements of the list
-    """
-    limit: Int
-  ): [User]
+directive @globalOptions(sourceName: String, endpoint: String, operationHeaders: ObjMap, queryStringOptions: ObjMap, queryParams: ObjMap) on OBJECT
+
+directive @httpOperation(path: String, operationSpecificHeaders: ObjMap, httpMethod: HTTPMethod, isBinary: Boolean, requestBaseBody: ObjMap, queryParamArgMap: ObjMap, queryStringOptionsByParam: ObjMap) on FIELD_DEFINITION
+
+type Query @globalOptions(sourceName: "UsersService", endpoint: "http://localhost:3004/") {
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3004/`\n>**Path**: `/users`\n\n"
+  users: [User] @httpOperation(path: "/users", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3004/`\n>**Path**: `/users/{args.id}`\n\n"
+  user(id: String!): User @httpOperation(path: "/users/{args.id}", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
 }
 
 type User {
-  entitlementsIds: [String]!
   id: String!
   name: String!
+  entitlementsIds: [String]!
+}
+
+scalar ObjMap
+
+enum HTTPMethod {
+  GET
+  HEAD
+  POST
+  PUT
+  DELETE
+  CONNECT
+  OPTIONS
+  TRACE
+  PATCH
 }

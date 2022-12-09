@@ -2,51 +2,43 @@ schema {
   query: Query
 }
 
-type Query {
-  """
-  
-  
-  Equivalent to GET /assets/{id}
-  """
-  asset(id: String!): Asset
-  """
-  
-  
-  Equivalent to GET /assets
-  """
-  assets(
-    """
-    Auto-generated argument that limits the size of returned list of objects/list, selecting the first `n` elements of the list
-    """
-    limit: Int
-  ): [Asset]
-  """
-  
-  
-  Equivalent to GET /categories
-  """
-  categories(
-    """
-    Auto-generated argument that limits the size of returned list of objects/list, selecting the first `n` elements of the list
-    """
-    limit: Int
-  ): [Category]
-  """
-  
-  
-  Equivalent to GET /categories/{id}
-  """
-  category(id: String!): Category
+directive @globalOptions(sourceName: String, endpoint: String, operationHeaders: ObjMap, queryStringOptions: ObjMap, queryParams: ObjMap) on OBJECT
+
+directive @httpOperation(path: String, operationSpecificHeaders: ObjMap, httpMethod: HTTPMethod, isBinary: Boolean, requestBaseBody: ObjMap, queryParamArgMap: ObjMap, queryStringOptionsByParam: ObjMap) on FIELD_DEFINITION
+
+type Query @globalOptions(sourceName: "AssetsService", endpoint: "http://localhost:3002/") {
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3002/`\n>**Path**: `/assets`\n\n"
+  assets: [Asset] @httpOperation(path: "/assets", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3002/`\n>**Path**: `/categories`\n\n"
+  categories: [Category] @httpOperation(path: "/categories", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3002/`\n>**Path**: `/assets/{args.id}`\n\n"
+  asset(id: String!): Asset @httpOperation(path: "/assets/{args.id}", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3002/`\n>**Path**: `/categories/{args.id}`\n\n"
+  category(id: String!): Category @httpOperation(path: "/categories/{args.id}", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
 }
 
 type Asset {
-  categoryId: String!
   id: String!
   publisherId: String!
+  categoryId: String!
   title: String!
 }
 
 type Category {
   id: String!
   name: String!
+}
+
+scalar ObjMap
+
+enum HTTPMethod {
+  GET
+  HEAD
+  POST
+  PUT
+  DELETE
+  CONNECT
+  OPTIONS
+  TRACE
+  PATCH
 }

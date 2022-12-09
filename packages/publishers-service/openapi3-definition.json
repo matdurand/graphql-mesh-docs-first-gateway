@@ -3,7 +3,8 @@
   "paths": {
     "/publishers": {
       "get": {
-        "operationId": "AppController_listPublishers",
+        "operationId": "publishers",
+        "summary": "",
         "parameters": [],
         "responses": {
           "200": {
@@ -27,7 +28,8 @@
     },
     "/publishers/{id}": {
       "get": {
-        "operationId": "AppController_findOnePublisher",
+        "operationId": "publisher",
+        "summary": "",
         "parameters": [
           {
             "name": "id",

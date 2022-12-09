@@ -3,7 +3,8 @@
   "paths": {
     "/users": {
       "get": {
-        "operationId": "AppController_listUsers",
+        "operationId": "users",
+        "summary": "",
         "parameters": [],
         "responses": {
           "200": {
@@ -27,7 +28,8 @@
     },
     "/users/{id}": {
       "get": {
-        "operationId": "AppController_findOneUser",
+        "operationId": "user",
+        "summary": "",
         "parameters": [
           {
             "name": "id",

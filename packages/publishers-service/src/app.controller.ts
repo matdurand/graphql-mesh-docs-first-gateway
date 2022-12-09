@@ -1,23 +1,25 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AppService } from './app.service';
 import { Publisher } from './entities/Publisher';
 
 @ApiTags('publishers')
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) { }
+  constructor(private readonly appService: AppService) {}
 
+  @ApiOperation({ operationId: 'publishers' })
   @Get('/publishers')
   @ApiResponse({
     status: 200,
     type: [Publisher],
   })
   listPublishers() {
-    console.log('Controller: listPublishers')
+    console.log('Controller: listPublishers');
     return this.appService.listPublishers();
   }
 
+  @ApiOperation({ operationId: 'publisher' })
   @ApiResponse({
     status: 200,
     type: Publisher,
@@ -29,10 +31,10 @@ export class AppController {
   @ApiParam({
     name: 'id',
     required: true,
-    type: String
+    type: String,
   })
   findOnePublisher(@Param() params) {
-    console.log('Controller: findOnePublisher', params)
+    console.log('Controller: findOnePublisher', params);
     return this.appService.findOnePublisher(params.id);
   }
 }

@@ -3,7 +3,8 @@
   "paths": {
     "/assets": {
       "get": {
-        "operationId": "AppController_listAssets",
+        "operationId": "assets",
+        "summary": "",
         "parameters": [],
         "responses": {
           "200": {
@@ -27,7 +28,8 @@
     },
     "/categories": {
       "get": {
-        "operationId": "AppController_listAssetCategories",
+        "operationId": "categories",
+        "summary": "",
         "parameters": [],
         "responses": {
           "200": {
@@ -51,7 +53,8 @@
     },
     "/assets/{id}": {
       "get": {
-        "operationId": "AppController_findOneAsset",
+        "operationId": "asset",
+        "summary": "",
         "parameters": [
           {
             "name": "id",
@@ -84,7 +87,8 @@
     },
     "/categories/{id}": {
       "get": {
-        "operationId": "AppController_findOneCategory",
+        "operationId": "category",
+        "summary": "",
         "parameters": [
           {
             "name": "id",

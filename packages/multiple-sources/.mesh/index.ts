@@ -1,90 +1,107 @@
 // @ts-nocheck
-import { GraphQLResolveInfo, SelectionSetNode, FieldNode } from 'graphql';
-
+import { GraphQLResolveInfo, SelectionSetNode, FieldNode, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
+import { findAndParseConfig } from '@graphql-mesh/cli';
+import { createMeshHTTPHandler, MeshHTTPHandler } from '@graphql-mesh/http';
+import { getMesh, ExecuteMeshFn, SubscribeMeshFn, MeshContext as BaseMeshContext, MeshInstance } from '@graphql-mesh/runtime';
+import { MeshStore, FsStoreStorageAdapter } from '@graphql-mesh/store';
+import { path as pathModule } from '@graphql-mesh/cross-helpers';
+import { ImportFn } from '@graphql-mesh/types';
+import type { UsersServiceTypes } from './sources/UsersService/types';
+import type { AssetsServiceTypes } from './sources/AssetsService/types';
+import type { PublishersServiceTypes } from './sources/PublishersService/types';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
+
+
+
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
+  /** The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text. */
   String: string;
   Boolean: boolean;
   Int: number;
   Float: number;
+  ObjMap: any;
 };
 
 export type Query = {
   /**
    *
-   *
-   * Equivalent to GET /assets/{id}
-   */
-  asset?: Maybe<Asset>;
-  /**
+   * >**Method**: `GET`
+   * >**Base URL**: `http://localhost:3003/`
+   * >**Path**: `/publishers`
    *
    *
-   * Equivalent to GET /assets
-   */
-  assets?: Maybe<Array<Maybe<Asset>>>;
-  /**
-   *
-   *
-   * Equivalent to GET /categories
-   */
-  categories?: Maybe<Array<Maybe<Category>>>;
-  /**
-   *
-   *
-   * Equivalent to GET /categories/{id}
-   */
-  category?: Maybe<Category>;
-  /**
-   *
-   *
-   * Equivalent to GET /publishers/{id}
-   */
-  publisher?: Maybe<Publisher>;
-  /**
-   *
-   *
-   * Equivalent to GET /publishers
    */
   publishers?: Maybe<Array<Maybe<Publisher>>>;
   /**
    *
+   * >**Method**: `GET`
+   * >**Base URL**: `http://localhost:3003/`
+   * >**Path**: `/publishers/{args.id}`
    *
-   * Equivalent to GET /users/{id}
+   *
    */
-  user?: Maybe<User>;
+  publisher?: Maybe<Publisher>;
   /**
    *
+   * >**Method**: `GET`
+   * >**Base URL**: `http://localhost:3002/`
+   * >**Path**: `/assets`
    *
-   * Equivalent to GET /users
+   *
+   */
+  assets?: Maybe<Array<Maybe<Asset>>>;
+  /**
+   *
+   * >**Method**: `GET`
+   * >**Base URL**: `http://localhost:3002/`
+   * >**Path**: `/categories`
+   *
+   *
+   */
+  categories?: Maybe<Array<Maybe<Category>>>;
+  /**
+   *
+   * >**Method**: `GET`
+   * >**Base URL**: `http://localhost:3002/`
+   * >**Path**: `/assets/{args.id}`
+   *
+   *
+   */
+  asset?: Maybe<Asset>;
+  /**
+   *
+   * >**Method**: `GET`
+   * >**Base URL**: `http://localhost:3002/`
+   * >**Path**: `/categories/{args.id}`
+   *
+   *
+   */
+  category?: Maybe<Category>;
+  /**
+   *
+   * >**Method**: `GET`
+   * >**Base URL**: `http://localhost:3004/`
+   * >**Path**: `/users`
+   *
+   *
    */
   users?: Maybe<Array<Maybe<User>>>;
-};
-
-
-export type QueryassetArgs = {
-  id: Scalars['String'];
-};
-
-
-export type QueryassetsArgs = {
-  limit?: InputMaybe<Scalars['Int']>;
-};
-
-
-export type QuerycategoriesArgs = {
-  limit?: InputMaybe<Scalars['Int']>;
-};
-
-
-export type QuerycategoryArgs = {
-  id: Scalars['String'];
+  /**
+   *
+   * >**Method**: `GET`
+   * >**Base URL**: `http://localhost:3004/`
+   * >**Path**: `/users/{args.id}`
+   *
+   *
+   */
+  user?: Maybe<User>;
 };
 
 
@@ -93,8 +110,13 @@ export type QuerypublisherArgs = {
 };
 
 
-export type QuerypublishersArgs = {
-  limit?: InputMaybe<Scalars['Int']>;
+export type QueryassetArgs = {
+  id: Scalars['String'];
+};
+
+
+export type QuerycategoryArgs = {
+  id: Scalars['String'];
 };
 
 
@@ -102,10 +124,21 @@ export type QueryuserArgs = {
   id: Scalars['String'];
 };
 
-
-export type QueryusersArgs = {
-  limit?: InputMaybe<Scalars['Int']>;
+export type Publisher = {
+  id: Scalars['String'];
+  name: Scalars['String'];
 };
+
+export type HTTPMethod =
+  | 'GET'
+  | 'HEAD'
+  | 'POST'
+  | 'PUT'
+  | 'DELETE'
+  | 'CONNECT'
+  | 'OPTIONS'
+  | 'TRACE'
+  | 'PATCH';
 
 export type Asset = {
   id: Scalars['String'];
@@ -115,11 +148,6 @@ export type Asset = {
 };
 
 export type Category = {
-  id: Scalars['String'];
-  name: Scalars['String'];
-};
-
-export type Publisher = {
   id: Scalars['String'];
   name: Scalars['String'];
 };
@@ -215,37 +243,70 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
   Query: ResolverTypeWrapper<{}>;
-  Asset: ResolverTypeWrapper<Asset>;
-  String: ResolverTypeWrapper<Scalars['String']>;
-  Int: ResolverTypeWrapper<Scalars['Int']>;
-  Category: ResolverTypeWrapper<Category>;
-  Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   Publisher: ResolverTypeWrapper<Publisher>;
+  String: ResolverTypeWrapper<Scalars['String']>;
+  Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
+  ObjMap: ResolverTypeWrapper<Scalars['ObjMap']>;
+  HTTPMethod: HTTPMethod;
+  Asset: ResolverTypeWrapper<Asset>;
+  Category: ResolverTypeWrapper<Category>;
   User: ResolverTypeWrapper<User>;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
   Query: {};
-  Asset: Asset;
-  String: Scalars['String'];
-  Int: Scalars['Int'];
-  Category: Category;
-  Boolean: Scalars['Boolean'];
   Publisher: Publisher;
+  String: Scalars['String'];
+  Boolean: Scalars['Boolean'];
+  ObjMap: Scalars['ObjMap'];
+  Asset: Asset;
+  Category: Category;
   User: User;
 }>;
 
+export type globalOptionsDirectiveArgs = {
+  sourceName?: Maybe<Scalars['String']>;
+  endpoint?: Maybe<Scalars['String']>;
+  operationHeaders?: Maybe<Scalars['ObjMap']>;
+  queryStringOptions?: Maybe<Scalars['ObjMap']>;
+  queryParams?: Maybe<Scalars['ObjMap']>;
+};
+
+export type globalOptionsDirectiveResolver<Result, Parent, ContextType = MeshContext, Args = globalOptionsDirectiveArgs> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
+
+export type httpOperationDirectiveArgs = {
+  path?: Maybe<Scalars['String']>;
+  operationSpecificHeaders?: Maybe<Scalars['ObjMap']>;
+  httpMethod?: Maybe<HTTPMethod>;
+  isBinary?: Maybe<Scalars['Boolean']>;
+  requestBaseBody?: Maybe<Scalars['ObjMap']>;
+  queryParamArgMap?: Maybe<Scalars['ObjMap']>;
+  queryStringOptionsByParam?: Maybe<Scalars['ObjMap']>;
+};
+
+export type httpOperationDirectiveResolver<Result, Parent, ContextType = MeshContext, Args = httpOperationDirectiveArgs> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
+
 export type QueryResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
-  asset?: Resolver<Maybe<ResolversTypes['Asset']>, ParentType, ContextType, RequireFields<QueryassetArgs, 'id'>>;
-  assets?: Resolver<Maybe<Array<Maybe<ResolversTypes['Asset']>>>, ParentType, ContextType, Partial<QueryassetsArgs>>;
-  categories?: Resolver<Maybe<Array<Maybe<ResolversTypes['Category']>>>, ParentType, ContextType, Partial<QuerycategoriesArgs>>;
-  category?: Resolver<Maybe<ResolversTypes['Category']>, ParentType, ContextType, RequireFields<QuerycategoryArgs, 'id'>>;
+  publishers?: Resolver<Maybe<Array<Maybe<ResolversTypes['Publisher']>>>, ParentType, ContextType>;
   publisher?: Resolver<Maybe<ResolversTypes['Publisher']>, ParentType, ContextType, RequireFields<QuerypublisherArgs, 'id'>>;
-  publishers?: Resolver<Maybe<Array<Maybe<ResolversTypes['Publisher']>>>, ParentType, ContextType, Partial<QuerypublishersArgs>>;
+  assets?: Resolver<Maybe<Array<Maybe<ResolversTypes['Asset']>>>, ParentType, ContextType>;
+  categories?: Resolver<Maybe<Array<Maybe<ResolversTypes['Category']>>>, ParentType, ContextType>;
+  asset?: Resolver<Maybe<ResolversTypes['Asset']>, ParentType, ContextType, RequireFields<QueryassetArgs, 'id'>>;
+  category?: Resolver<Maybe<ResolversTypes['Category']>, ParentType, ContextType, RequireFields<QuerycategoryArgs, 'id'>>;
+  users?: Resolver<Maybe<Array<Maybe<ResolversTypes['User']>>>, ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryuserArgs, 'id'>>;
-  users?: Resolver<Maybe<Array<Maybe<ResolversTypes['User']>>>, ParentType, ContextType, Partial<QueryusersArgs>>;
 }>;
+
+export type PublisherResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['Publisher'] = ResolversParentTypes['Publisher']> = ResolversObject<{
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export interface ObjMapScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['ObjMap'], any> {
+  name: 'ObjMap';
+}
 
 export type AssetResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['Asset'] = ResolversParentTypes['Asset']> = ResolversObject<{
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -261,12 +322,6 @@ export type CategoryResolvers<ContextType = MeshContext, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type PublisherResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['Publisher'] = ResolversParentTypes['Publisher']> = ResolversObject<{
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
 export type UserResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = ResolversObject<{
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -276,324 +331,74 @@ export type UserResolvers<ContextType = MeshContext, ParentType extends Resolver
 
 export type Resolvers<ContextType = MeshContext> = ResolversObject<{
   Query?: QueryResolvers<ContextType>;
+  Publisher?: PublisherResolvers<ContextType>;
+  ObjMap?: GraphQLScalarType;
   Asset?: AssetResolvers<ContextType>;
   Category?: CategoryResolvers<ContextType>;
-  Publisher?: PublisherResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
 }>;
 
+export type DirectiveResolvers<ContextType = MeshContext> = ResolversObject<{
+  globalOptions?: globalOptionsDirectiveResolver<any, any, ContextType>;
+  httpOperation?: httpOperationDirectiveResolver<any, any, ContextType>;
+}>;
 
-import { MeshContext as BaseMeshContext, MeshInstance } from '@graphql-mesh/runtime';
+export type MeshContext = PublishersServiceTypes.Context & AssetsServiceTypes.Context & UsersServiceTypes.Context & BaseMeshContext;
 
-import { InContextSdkMethod } from '@graphql-mesh/types';
 
+const baseDir = pathModule.join(typeof __dirname === 'string' ? __dirname : '/', '..');
 
-    export namespace AssetsServiceTypes {
-      export type Maybe<T> = T | null;
-export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-/** All built-in and custom scalars, mapped to their actual values */
-export type Scalars = {
-  ID: string;
-  String: string;
-  Boolean: boolean;
-  Int: number;
-  Float: number;
-};
-
-export type Query = {
-  /**
-   *
-   *
-   * Equivalent to GET /assets/{id}
-   */
-  asset?: Maybe<Asset>;
-  /**
-   *
-   *
-   * Equivalent to GET /assets
-   */
-  assets?: Maybe<Array<Maybe<Asset>>>;
-  /**
-   *
-   *
-   * Equivalent to GET /categories
-   */
-  categories?: Maybe<Array<Maybe<Category>>>;
-  /**
-   *
-   *
-   * Equivalent to GET /categories/{id}
-   */
-  category?: Maybe<Category>;
-};
-
-
-export type QueryassetArgs = {
-  id: Scalars['String'];
-};
-
-
-export type QueryassetsArgs = {
-  limit?: InputMaybe<Scalars['Int']>;
-};
-
-
-export type QuerycategoriesArgs = {
-  limit?: InputMaybe<Scalars['Int']>;
-};
-
-
-export type QuerycategoryArgs = {
-  id: Scalars['String'];
-};
-
-export type Asset = {
-  categoryId: Scalars['String'];
-  id: Scalars['String'];
-  publisherId: Scalars['String'];
-  title: Scalars['String'];
-};
-
-export type Category = {
-  id: Scalars['String'];
-  name: Scalars['String'];
-};
-
-    }
-    export type QueryAssetsServiceSdk = {
-  /** 
-
-Equivalent to GET /assets/{id} **/
-  asset: InContextSdkMethod<AssetsServiceTypes.Query['asset'], AssetsServiceTypes.QueryassetArgs, MeshContext>,
-  /** 
-
-Equivalent to GET /assets **/
-  assets: InContextSdkMethod<AssetsServiceTypes.Query['assets'], AssetsServiceTypes.QueryassetsArgs, MeshContext>,
-  /** 
-
-Equivalent to GET /categories **/
-  categories: InContextSdkMethod<AssetsServiceTypes.Query['categories'], AssetsServiceTypes.QuerycategoriesArgs, MeshContext>,
-  /** 
-
-Equivalent to GET /categories/{id} **/
-  category: InContextSdkMethod<AssetsServiceTypes.Query['category'], AssetsServiceTypes.QuerycategoryArgs, MeshContext>
-};
-
-export type MutationAssetsServiceSdk = {
-
-};
-
-export type SubscriptionAssetsServiceSdk = {
-
-};
-
-
-    export namespace PublishersServiceTypes {
-      export type Maybe<T> = T | null;
-export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-/** All built-in and custom scalars, mapped to their actual values */
-export type Scalars = {
-  ID: string;
-  String: string;
-  Boolean: boolean;
-  Int: number;
-  Float: number;
-};
-
-export type Query = {
-  /**
-   *
-   *
-   * Equivalent to GET /publishers/{id}
-   */
-  publisher?: Maybe<Publisher>;
-  /**
-   *
-   *
-   * Equivalent to GET /publishers
-   */
-  publishers?: Maybe<Array<Maybe<Publisher>>>;
-};
-
-
-export type QuerypublisherArgs = {
-  id: Scalars['String'];
-};
-
-
-export type QuerypublishersArgs = {
-  limit?: InputMaybe<Scalars['Int']>;
-};
-
-export type Publisher = {
-  id: Scalars['String'];
-  name: Scalars['String'];
-};
-
-    }
-    export type QueryPublishersServiceSdk = {
-  /** 
-
-Equivalent to GET /publishers/{id} **/
-  publisher: InContextSdkMethod<PublishersServiceTypes.Query['publisher'], PublishersServiceTypes.QuerypublisherArgs, MeshContext>,
-  /** 
-
-Equivalent to GET /publishers **/
-  publishers: InContextSdkMethod<PublishersServiceTypes.Query['publishers'], PublishersServiceTypes.QuerypublishersArgs, MeshContext>
-};
-
-export type MutationPublishersServiceSdk = {
-
-};
-
-export type SubscriptionPublishersServiceSdk = {
-
-};
-
-
-    export namespace UsersServiceTypes {
-      export type Maybe<T> = T | null;
-export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-/** All built-in and custom scalars, mapped to their actual values */
-export type Scalars = {
-  ID: string;
-  String: string;
-  Boolean: boolean;
-  Int: number;
-  Float: number;
-};
-
-export type Query = {
-  /**
-   *
-   *
-   * Equivalent to GET /users/{id}
-   */
-  user?: Maybe<User>;
-  /**
-   *
-   *
-   * Equivalent to GET /users
-   */
-  users?: Maybe<Array<Maybe<User>>>;
-};
-
-
-export type QueryuserArgs = {
-  id: Scalars['String'];
-};
-
-
-export type QueryusersArgs = {
-  limit?: InputMaybe<Scalars['Int']>;
-};
-
-export type User = {
-  entitlementsIds: Array<Maybe<Scalars['String']>>;
-  id: Scalars['String'];
-  name: Scalars['String'];
-};
-
-    }
-    export type QueryUsersServiceSdk = {
-  /** 
-
-Equivalent to GET /users/{id} **/
-  user: InContextSdkMethod<UsersServiceTypes.Query['user'], UsersServiceTypes.QueryuserArgs, MeshContext>,
-  /** 
-
-Equivalent to GET /users **/
-  users: InContextSdkMethod<UsersServiceTypes.Query['users'], UsersServiceTypes.QueryusersArgs, MeshContext>
-};
-
-export type MutationUsersServiceSdk = {
-
-};
-
-export type SubscriptionUsersServiceSdk = {
-
-};
-
-export type AssetsServiceContext = {
-      ["AssetsService"]: { Query: QueryAssetsServiceSdk, Mutation: MutationAssetsServiceSdk, Subscription: SubscriptionAssetsServiceSdk },
-    };
-
-export type PublishersServiceContext = {
-      ["PublishersService"]: { Query: QueryPublishersServiceSdk, Mutation: MutationPublishersServiceSdk, Subscription: SubscriptionPublishersServiceSdk },
-    };
-
-export type UsersServiceContext = {
-      ["UsersService"]: { Query: QueryUsersServiceSdk, Mutation: MutationUsersServiceSdk, Subscription: SubscriptionUsersServiceSdk },
-    };
-
-export type MeshContext = AssetsServiceContext & PublishersServiceContext & UsersServiceContext & BaseMeshContext;
-
-
-import { getMesh } from '@graphql-mesh/runtime';
-import { MeshStore, FsStoreStorageAdapter } from '@graphql-mesh/store';
-import { path as pathModule } from '@graphql-mesh/cross-helpers';
-import { fileURLToPath } from '@graphql-mesh/utils';
-
-const importedModules: Record<string, any> = {
-
-};
-
-const baseDir = pathModule.join(__dirname, '..');
-
-const importFn = (moduleId: string) => {
+const importFn: ImportFn = <T>(moduleId: string) => {
   const relativeModuleId = (pathModule.isAbsolute(moduleId) ? pathModule.relative(baseDir, moduleId) : moduleId).split('\\').join('/').replace(baseDir + '/', '');
-  if (!(relativeModuleId in importedModules)) {
-    throw new Error(`Cannot find module '${relativeModuleId}'.`);
+  switch(relativeModuleId) {
+    default:
+      return Promise.reject(new Error(`Cannot find module '${relativeModuleId}'.`));
   }
-  return Promise.resolve(importedModules[relativeModuleId]);
 };
 
 const rootStore = new MeshStore('.mesh', new FsStoreStorageAdapter({
   cwd: baseDir,
   importFn,
-  fileType: 'ts',
+  fileType: "ts",
 }), {
   readonly: true,
   validate: false
 });
 
-
-                import { findAndParseConfig } from '@graphql-mesh/cli';
-                function getMeshOptions() {
-                  console.warn('WARNING: These artifacts are built for development mode. Please run "mesh build" to build production artifacts');
-                  return findAndParseConfig({
-                    dir: baseDir,
-                    artifactsDir: ".mesh",
-                    configName: "mesh",
-                  });
-                }
-              
-
-export const documentsInSDL = /*#__PURE__*/ [];
-
-export async function getBuiltMesh(): Promise<MeshInstance<MeshContext>> {
-  const meshConfig = await getMeshOptions();
-  return getMesh<MeshContext>(meshConfig);
+export function getMeshOptions() {
+  console.warn('WARNING: These artifacts are built for development mode. Please run "mesh build" to build production artifacts');
+  return findAndParseConfig({
+    dir: baseDir,
+    artifactsDir: ".mesh",
+    configName: "mesh",
+    additionalPackagePrefixes: [],
+    initialLoggerPrefix: "🕸️  Mesh",
+  });
 }
 
-export async function getMeshSDK<TGlobalContext = any, TOperationContext = any>(globalContext?: TGlobalContext) {
-  const { sdkRequesterFactory } = await getBuiltMesh();
-  return getSdk<TOperationContext>(sdkRequesterFactory(globalContext));
+export function createBuiltMeshHTTPHandler(): MeshHTTPHandler<MeshContext> {
+  return createMeshHTTPHandler<MeshContext>({
+    baseDir,
+    getBuiltMesh: getBuiltMesh,
+    rawServeConfig: undefined,
+  })
 }
 
-export type Requester<C= {}> = <R, V>(doc: DocumentNode, vars?: V, options?: C) => Promise<R>
-export function getSdk<C>(requester: Requester<C>) {
-  return {
+let meshInstance$: Promise<MeshInstance> | undefined;
 
-  };
+export function getBuiltMesh(): Promise<MeshInstance> {
+  if (meshInstance$ == null) {
+    meshInstance$ = getMeshOptions().then(meshOptions => getMesh(meshOptions)).then(mesh => {
+      const id = mesh.pubsub.subscribe('destroy', () => {
+        meshInstance$ = undefined;
+        mesh.pubsub.unsubscribe(id);
+      });
+      return mesh;
+    });
+  }
+  return meshInstance$;
 }
-export type Sdk = ReturnType<typeof getSdk>;
+
+export const execute: ExecuteMeshFn = (...args) => getBuiltMesh().then(({ execute }) => execute(...args));
+
+export const subscribe: SubscribeMeshFn = (...args) => getBuiltMesh().then(({ subscribe }) => subscribe(...args));

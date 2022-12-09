@@ -10,12 +10,14 @@
     "build": "echo \"noop\";"
   },
   "dependencies": {
-    "@graphql-mesh/cli": "^0.66.0",
-    "@graphql-mesh/graphql": "^0.23.0",
-    "@graphql-mesh/grpc": "^0.21.3",
-    "@graphql-mesh/openapi": "^0.24.4",
-    "@graphql-mesh/transform-filter-schema": "^0.14.38",
-    "@graphql-mesh/transform-rename": "^0.12.28",
+    "@graphql-mesh/cli": "^0.82.5",
+    "@graphql-mesh/graphql": "^0.33.4",
+    "@graphql-mesh/grpc": "^0.28.3",
+    "@graphql-mesh/openapi": "^0.35.4",
+    "@graphql-mesh/plugin-deduplicate-request": "^0.1.3",
+    "@graphql-mesh/transform-filter-schema": "^0.15.3",
+    "@graphql-mesh/transform-rename": "^0.14.3",
+    "concurrently": "^7.0.0",
     "graphql": "^16.3.0"
   }
 }

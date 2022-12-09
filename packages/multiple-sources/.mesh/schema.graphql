@@ -1,47 +1,47 @@
-type Query {
-  "\n\nEquivalent to GET /assets/{id}"
-  asset(id: String!): Asset
+schema {
+  query: Query
+}
 
-  "\n\nEquivalent to GET /assets"
-  assets(
-    """
-    Auto-generated argument that limits the size of returned list of objects/list, selecting the first `n` elements of the list
-    """
-    limit: Int
-  ): [Asset]
+directive @globalOptions(sourceName: String, endpoint: String, operationHeaders: ObjMap, queryStringOptions: ObjMap, queryParams: ObjMap) on OBJECT
 
-  "\n\nEquivalent to GET /categories"
-  categories(
-    """
-    Auto-generated argument that limits the size of returned list of objects/list, selecting the first `n` elements of the list
-    """
-    limit: Int
-  ): [Category]
+directive @httpOperation(path: String, operationSpecificHeaders: ObjMap, httpMethod: HTTPMethod, isBinary: Boolean, requestBaseBody: ObjMap, queryParamArgMap: ObjMap, queryStringOptionsByParam: ObjMap) on FIELD_DEFINITION
 
-  "\n\nEquivalent to GET /categories/{id}"
-  category(id: String!): Category
+type Query @globalOptions(sourceName: "UsersService", endpoint: "http://localhost:3004/") {
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3003/`\n>**Path**: `/publishers`\n\n"
+  publishers: [Publisher] @httpOperation(path: "/publishers", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3003/`\n>**Path**: `/publishers/{args.id}`\n\n"
+  publisher(id: String!): Publisher @httpOperation(path: "/publishers/{args.id}", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3002/`\n>**Path**: `/assets`\n\n"
+  assets: [Asset] @httpOperation(path: "/assets", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3002/`\n>**Path**: `/categories`\n\n"
+  categories: [Category] @httpOperation(path: "/categories", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3002/`\n>**Path**: `/assets/{args.id}`\n\n"
+  asset(id: String!): Asset @httpOperation(path: "/assets/{args.id}", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3002/`\n>**Path**: `/categories/{args.id}`\n\n"
+  category(id: String!): Category @httpOperation(path: "/categories/{args.id}", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3004/`\n>**Path**: `/users`\n\n"
+  users: [User] @httpOperation(path: "/users", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3004/`\n>**Path**: `/users/{args.id}`\n\n"
+  user(id: String!): User @httpOperation(path: "/users/{args.id}", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
+}
 
-  "\n\nEquivalent to GET /publishers/{id}"
-  publisher(id: String!): Publisher
+type Publisher {
+  id: String!
+  name: String!
+}
 
-  "\n\nEquivalent to GET /publishers"
-  publishers(
-    """
-    Auto-generated argument that limits the size of returned list of objects/list, selecting the first `n` elements of the list
-    """
-    limit: Int
-  ): [Publisher]
+scalar ObjMap
 
-  "\n\nEquivalent to GET /users/{id}"
-  user(id: String!): User
-
-  "\n\nEquivalent to GET /users"
-  users(
-    """
-    Auto-generated argument that limits the size of returned list of objects/list, selecting the first `n` elements of the list
-    """
-    limit: Int
-  ): [User]
+enum HTTPMethod {
+  GET
+  HEAD
+  POST
+  PUT
+  DELETE
+  CONNECT
+  OPTIONS
+  TRACE
+  PATCH
 }
 
 type Asset {
@@ -52,11 +52,6 @@ type Asset {
 }
 
 type Category {
-  id: String!
-  name: String!
-}
-
-type Publisher {
   id: String!
   name: String!
 }
