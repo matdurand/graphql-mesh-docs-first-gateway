@@ -16,7 +16,7 @@ export class AppController {
     type: [Asset],
   })
   listAssets() {
-    console.log('Controller: listAssetCategories');
+    console.log('Controller: listAssets');
     return this.appService.listAssets();
   }
 

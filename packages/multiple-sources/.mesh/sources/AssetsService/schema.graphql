@@ -6,7 +6,7 @@ directive @globalOptions(sourceName: String, endpoint: String, operationHeaders:
 
 directive @httpOperation(path: String, operationSpecificHeaders: ObjMap, httpMethod: HTTPMethod, isBinary: Boolean, requestBaseBody: ObjMap, queryParamArgMap: ObjMap, queryStringOptionsByParam: ObjMap) on FIELD_DEFINITION
 
-type Query @globalOptions(sourceName: "AssetsService", endpoint: "http://localhost:3002/") {
+type Query @globalOptions(sourceName: "UsersService", endpoint: "http://localhost:3004/") {
   "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3002/`\n>**Path**: `/assets`\n\n"
   assets: [Asset] @httpOperation(path: "/assets", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
   "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3002/`\n>**Path**: `/categories`\n\n"
