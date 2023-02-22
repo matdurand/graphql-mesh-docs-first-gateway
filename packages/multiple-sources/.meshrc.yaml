@@ -21,7 +21,10 @@ transforms:
         - Asset.!publisherId
         - User.!entitlementsIds
 plugins:
-  - deduplicateRequest: {}
+   - deduplicateRequest: {}
+#   - maskedErrors:
+#       errorMessage: 'Something went wrong.'
+# additionalEnvelopPlugins: "./envelop-plugins.ts"
 additionalTypeDefs: |
   extend type Asset {
     publisher: Publisher

@@ -10,12 +10,12 @@
     "build": "echo \"noop\";"
   },
   "dependencies": {
-    "@envelop/core": "^3.0.6",
+    "@envelop/core": "3.0.4",
     "@graphql-mesh/cli": "0.82.5",
     "@graphql-mesh/graphql": "^0.34.6",
     "@graphql-mesh/grpc": "^0.29.10",
     "@graphql-mesh/openapi": "^0.35.17",
-    "@graphql-mesh/plugin-deduplicate-request": "^0.1.3",
+    "@graphql-mesh/plugin-deduplicate-request": "^0.1.14",
     "@graphql-mesh/transform-filter-schema": "^0.15.16",
     "@graphql-mesh/transform-rename": "^0.14.14",
     "concurrently": "^7.0.0",
