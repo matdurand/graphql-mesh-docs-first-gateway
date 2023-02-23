@@ -6,7 +6,7 @@ directive @globalOptions(sourceName: String, endpoint: String, operationHeaders:
 
 directive @httpOperation(path: String, operationSpecificHeaders: ObjMap, httpMethod: HTTPMethod, isBinary: Boolean, requestBaseBody: ObjMap, queryParamArgMap: ObjMap, queryStringOptionsByParam: ObjMap) on FIELD_DEFINITION
 
-type Query @globalOptions(sourceName: "UsersService", endpoint: "http://localhost:3004/") {
+type Query @globalOptions(sourceName: "PublishersService", endpoint: "http://localhost:3003/") {
   "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3003/`\n>**Path**: `/publishers`\n\n"
   publishers: [Publisher] @httpOperation(path: "/publishers", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
   "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3003/`\n>**Path**: `/publishers/{args.id}`\n\n"

@@ -6,9 +6,10 @@ import { getMesh, ExecuteMeshFn, SubscribeMeshFn, MeshContext as BaseMeshContext
 import { MeshStore, FsStoreStorageAdapter } from '@graphql-mesh/store';
 import { path as pathModule } from '@graphql-mesh/cross-helpers';
 import { ImportFn } from '@graphql-mesh/types';
-import type { UsersServiceTypes } from './sources/UsersService/types';
-import type { AssetsServiceTypes } from './sources/AssetsService/types';
 import type { PublishersServiceTypes } from './sources/PublishersService/types';
+import type { AssetsServiceTypes } from './sources/AssetsService/types';
+import type { UsersServiceTypes } from './sources/UsersService/types';
+import type { StoresTypes } from './sources/Stores/types';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -30,24 +31,6 @@ export type Scalars = {
 };
 
 export type Query = {
-  /**
-   *
-   * >**Method**: `GET`
-   * >**Base URL**: `http://localhost:3003/`
-   * >**Path**: `/publishers`
-   *
-   *
-   */
-  publishers?: Maybe<Array<Maybe<Publisher>>>;
-  /**
-   *
-   * >**Method**: `GET`
-   * >**Base URL**: `http://localhost:3003/`
-   * >**Path**: `/publishers/{args.id}`
-   *
-   *
-   */
-  publisher?: Maybe<Publisher>;
   /**
    *
    * >**Method**: `GET`
@@ -87,6 +70,24 @@ export type Query = {
   /**
    *
    * >**Method**: `GET`
+   * >**Base URL**: `http://localhost:3003/`
+   * >**Path**: `/publishers`
+   *
+   *
+   */
+  publishers?: Maybe<Array<Maybe<Publisher>>>;
+  /**
+   *
+   * >**Method**: `GET`
+   * >**Base URL**: `http://localhost:3003/`
+   * >**Path**: `/publishers/{args.id}`
+   *
+   *
+   */
+  publisher?: Maybe<Publisher>;
+  /**
+   *
+   * >**Method**: `GET`
    * >**Base URL**: `http://localhost:3004/`
    * >**Path**: `/users`
    *
@@ -102,11 +103,8 @@ export type Query = {
    *
    */
   user?: Maybe<User>;
-};
-
-
-export type QuerypublisherArgs = {
-  id: Scalars['String'];
+  stores: Array<Store>;
+  assetSells: Array<Sells>;
 };
 
 
@@ -120,11 +118,28 @@ export type QuerycategoryArgs = {
 };
 
 
+export type QuerypublisherArgs = {
+  id: Scalars['String'];
+};
+
+
 export type QueryuserArgs = {
   id: Scalars['String'];
 };
 
-export type Publisher = {
+
+export type QueryassetSellsArgs = {
+  storeId: Scalars['ID'];
+};
+
+export type Asset = {
+  id: Scalars['String'];
+  title: Scalars['String'];
+  publisher?: Maybe<Publisher>;
+  category?: Maybe<Category>;
+};
+
+export type Category = {
   id: Scalars['String'];
   name: Scalars['String'];
 };
@@ -140,14 +155,7 @@ export type HTTPMethod =
   | 'TRACE'
   | 'PATCH';
 
-export type Asset = {
-  id: Scalars['String'];
-  title: Scalars['String'];
-  publisher?: Maybe<Publisher>;
-  category?: Maybe<Category>;
-};
-
-export type Category = {
+export type Publisher = {
   id: Scalars['String'];
   name: Scalars['String'];
 };
@@ -156,6 +164,18 @@ export type User = {
   id: Scalars['String'];
   name: Scalars['String'];
   entitlements?: Maybe<Array<Maybe<Asset>>>;
+};
+
+export type Store = {
+  id: Scalars['ID'];
+  name: Scalars['String'];
+};
+
+export type Sells = {
+  sellsCount: Scalars['Int'];
+  monthYear?: Maybe<Scalars['String']>;
+  storeId: Scalars['ID'];
+  asset?: Maybe<Asset>;
 };
 
 export type WithIndex<TObject> = TObject & Record<string, any>;
@@ -243,26 +263,34 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
   Query: ResolverTypeWrapper<{}>;
-  Publisher: ResolverTypeWrapper<Publisher>;
+  Asset: ResolverTypeWrapper<Asset>;
   String: ResolverTypeWrapper<Scalars['String']>;
+  Category: ResolverTypeWrapper<Category>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   ObjMap: ResolverTypeWrapper<Scalars['ObjMap']>;
   HTTPMethod: HTTPMethod;
-  Asset: ResolverTypeWrapper<Asset>;
-  Category: ResolverTypeWrapper<Category>;
+  Publisher: ResolverTypeWrapper<Publisher>;
   User: ResolverTypeWrapper<User>;
+  Store: ResolverTypeWrapper<Store>;
+  ID: ResolverTypeWrapper<Scalars['ID']>;
+  Sells: ResolverTypeWrapper<Sells>;
+  Int: ResolverTypeWrapper<Scalars['Int']>;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
   Query: {};
-  Publisher: Publisher;
+  Asset: Asset;
   String: Scalars['String'];
+  Category: Category;
   Boolean: Scalars['Boolean'];
   ObjMap: Scalars['ObjMap'];
-  Asset: Asset;
-  Category: Category;
+  Publisher: Publisher;
   User: User;
+  Store: Store;
+  ID: Scalars['ID'];
+  Sells: Sells;
+  Int: Scalars['Int'];
 }>;
 
 export type globalOptionsDirectiveArgs = {
@@ -288,25 +316,17 @@ export type httpOperationDirectiveArgs = {
 export type httpOperationDirectiveResolver<Result, Parent, ContextType = MeshContext, Args = httpOperationDirectiveArgs> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
 
 export type QueryResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
-  publishers?: Resolver<Maybe<Array<Maybe<ResolversTypes['Publisher']>>>, ParentType, ContextType>;
-  publisher?: Resolver<Maybe<ResolversTypes['Publisher']>, ParentType, ContextType, RequireFields<QuerypublisherArgs, 'id'>>;
   assets?: Resolver<Maybe<Array<Maybe<ResolversTypes['Asset']>>>, ParentType, ContextType>;
   categories?: Resolver<Maybe<Array<Maybe<ResolversTypes['Category']>>>, ParentType, ContextType>;
   asset?: Resolver<Maybe<ResolversTypes['Asset']>, ParentType, ContextType, RequireFields<QueryassetArgs, 'id'>>;
   category?: Resolver<Maybe<ResolversTypes['Category']>, ParentType, ContextType, RequireFields<QuerycategoryArgs, 'id'>>;
+  publishers?: Resolver<Maybe<Array<Maybe<ResolversTypes['Publisher']>>>, ParentType, ContextType>;
+  publisher?: Resolver<Maybe<ResolversTypes['Publisher']>, ParentType, ContextType, RequireFields<QuerypublisherArgs, 'id'>>;
   users?: Resolver<Maybe<Array<Maybe<ResolversTypes['User']>>>, ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryuserArgs, 'id'>>;
+  stores?: Resolver<Array<ResolversTypes['Store']>, ParentType, ContextType>;
+  assetSells?: Resolver<Array<ResolversTypes['Sells']>, ParentType, ContextType, RequireFields<QueryassetSellsArgs, 'storeId'>>;
 }>;
-
-export type PublisherResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['Publisher'] = ResolversParentTypes['Publisher']> = ResolversObject<{
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export interface ObjMapScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['ObjMap'], any> {
-  name: 'ObjMap';
-}
 
 export type AssetResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['Asset'] = ResolversParentTypes['Asset']> = ResolversObject<{
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -322,6 +342,16 @@ export type CategoryResolvers<ContextType = MeshContext, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export interface ObjMapScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['ObjMap'], any> {
+  name: 'ObjMap';
+}
+
+export type PublisherResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['Publisher'] = ResolversParentTypes['Publisher']> = ResolversObject<{
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type UserResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = ResolversObject<{
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -329,13 +359,29 @@ export type UserResolvers<ContextType = MeshContext, ParentType extends Resolver
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type StoreResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['Store'] = ResolversParentTypes['Store']> = ResolversObject<{
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type SellsResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['Sells'] = ResolversParentTypes['Sells']> = ResolversObject<{
+  sellsCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  monthYear?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  storeId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  asset?: Resolver<Maybe<ResolversTypes['Asset']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type Resolvers<ContextType = MeshContext> = ResolversObject<{
   Query?: QueryResolvers<ContextType>;
-  Publisher?: PublisherResolvers<ContextType>;
-  ObjMap?: GraphQLScalarType;
   Asset?: AssetResolvers<ContextType>;
   Category?: CategoryResolvers<ContextType>;
+  ObjMap?: GraphQLScalarType;
+  Publisher?: PublisherResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
+  Store?: StoreResolvers<ContextType>;
+  Sells?: SellsResolvers<ContextType>;
 }>;
 
 export type DirectiveResolvers<ContextType = MeshContext> = ResolversObject<{
@@ -343,7 +389,7 @@ export type DirectiveResolvers<ContextType = MeshContext> = ResolversObject<{
   httpOperation?: httpOperationDirectiveResolver<any, any, ContextType>;
 }>;
 
-export type MeshContext = PublishersServiceTypes.Context & AssetsServiceTypes.Context & UsersServiceTypes.Context & BaseMeshContext;
+export type MeshContext = AssetsServiceTypes.Context & PublishersServiceTypes.Context & UsersServiceTypes.Context & StoresTypes.Context & BaseMeshContext;
 
 
 const baseDir = pathModule.join(typeof __dirname === 'string' ? __dirname : '/', '..');

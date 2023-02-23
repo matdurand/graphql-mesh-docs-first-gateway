@@ -14,14 +14,22 @@ sources:
       openapi:
         endpoint: http://localhost:3004/
         source: ../users-service/openapi3-definition.json
+  - name: Stores
+    handler:
+      graphql:
+        endpoint: http://0.0.0.0:3005/graphql
 transforms:
   - filterSchema:
       filters:
         - Asset.!categoryId
         - Asset.!publisherId
         - User.!entitlementsIds
+        - Sells.!assetId
 plugins:
   - deduplicateRequest: {}
+  - maskedErrors:
+      errorMessage: 'Something went wrong.'
+#  - httpDetailsExtensions: {}
 additionalTypeDefs: |
   extend type Asset {
     publisher: Publisher
@@ -29,6 +37,9 @@ additionalTypeDefs: |
   }
   extend type User {
     entitlements: [Asset]
+  }
+  extend type Sells {
+    asset: Asset
   }
 additionalResolvers:
   - targetTypeName: Asset
@@ -55,4 +66,16 @@ additionalResolvers:
       }
     sourceArgs: # What args does this need to take?
       id: "{root.publisherId}"
+  - targetTypeName: Sells
+    targetFieldName: asset
+    sourceName: AssetsService # Which source does the target field belong to?
+    sourceTypeName: Query # Which root type does the target field belong to?
+    sourceFieldName: asset # What is the source field name?
+    requiredSelectionSet:
+      |
+      {
+        assetId
+      }
+    sourceArgs: # What args does this need to take?
+      id: "{root.assetId}"
   - "./user-entitlements-resolver"

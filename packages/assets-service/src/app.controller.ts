@@ -66,6 +66,7 @@ export class AppController {
   })
   findOneCategory(@Param() params) {
     console.log('Controller: findOneCategory', params);
+    //throw new Error('Category boom');
     return this.appService.findOneCategory(params.id);
   }
 }

@@ -7,10 +7,6 @@ directive @globalOptions(sourceName: String, endpoint: String, operationHeaders:
 directive @httpOperation(path: String, operationSpecificHeaders: ObjMap, httpMethod: HTTPMethod, isBinary: Boolean, requestBaseBody: ObjMap, queryParamArgMap: ObjMap, queryStringOptionsByParam: ObjMap) on FIELD_DEFINITION
 
 type Query @globalOptions(sourceName: "UsersService", endpoint: "http://localhost:3004/") {
-  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3003/`\n>**Path**: `/publishers`\n\n"
-  publishers: [Publisher] @httpOperation(path: "/publishers", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
-  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3003/`\n>**Path**: `/publishers/{args.id}`\n\n"
-  publisher(id: String!): Publisher @httpOperation(path: "/publishers/{args.id}", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
   "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3002/`\n>**Path**: `/assets`\n\n"
   assets: [Asset] @httpOperation(path: "/assets", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
   "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3002/`\n>**Path**: `/categories`\n\n"
@@ -19,13 +15,26 @@ type Query @globalOptions(sourceName: "UsersService", endpoint: "http://localhos
   asset(id: String!): Asset @httpOperation(path: "/assets/{args.id}", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
   "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3002/`\n>**Path**: `/categories/{args.id}`\n\n"
   category(id: String!): Category @httpOperation(path: "/categories/{args.id}", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3003/`\n>**Path**: `/publishers`\n\n"
+  publishers: [Publisher] @httpOperation(path: "/publishers", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
+  "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3003/`\n>**Path**: `/publishers/{args.id}`\n\n"
+  publisher(id: String!): Publisher @httpOperation(path: "/publishers/{args.id}", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
   "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3004/`\n>**Path**: `/users`\n\n"
   users: [User] @httpOperation(path: "/users", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
   "\n>**Method**: `GET`\n>**Base URL**: `http://localhost:3004/`\n>**Path**: `/users/{args.id}`\n\n"
   user(id: String!): User @httpOperation(path: "/users/{args.id}", operationSpecificHeaders: "{\"accept\":\"application/json\"}", httpMethod: GET)
+  stores: [Store!]!
+  assetSells(storeId: ID!): [Sells!]!
 }
 
-type Publisher {
+type Asset {
+  id: String!
+  title: String!
+  publisher: Publisher
+  category: Category
+}
+
+type Category {
   id: String!
   name: String!
 }
@@ -44,14 +53,7 @@ enum HTTPMethod {
   PATCH
 }
 
-type Asset {
-  id: String!
-  title: String!
-  publisher: Publisher
-  category: Category
-}
-
-type Category {
+type Publisher {
   id: String!
   name: String!
 }
@@ -60,4 +62,16 @@ type User {
   id: String!
   name: String!
   entitlements: [Asset]
+}
+
+type Store {
+  id: ID!
+  name: String!
+}
+
+type Sells {
+  sellsCount: Int!
+  monthYear: String
+  storeId: ID!
+  asset: Asset
 }

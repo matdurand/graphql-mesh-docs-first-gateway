@@ -1,0 +1,20 @@
+schema {
+  query: Query
+}
+
+type Store {
+  id: ID!
+  name: String!
+}
+
+type Sells {
+  assetId: ID!
+  sellsCount: Int!
+  monthYear: String
+  storeId: ID!
+}
+
+type Query {
+  stores: [Store!]!
+  assetSells(storeId: ID!): [Sells!]!
+}

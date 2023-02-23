@@ -10,7 +10,7 @@
     ]
   },
   "scripts": {
-    "start-multiple-sources": "concurrently --kill-others \"yarn workspace assets-service start\" \"yarn workspace publishers-service start\" \"yarn workspace users-service start\" \"yarn workspace mesh-multiple-sources start\""
+    "start-multiple-sources": "concurrently --kill-others \"yarn workspace assets-service start\" \"yarn workspace publishers-service start\" \"yarn workspace users-service start\" \"yarn workspace stores-service start\" \"yarn workspace mesh-multiple-sources start\""
   },
   "dependencies": {
     "concurrently": "^7.0.0"
